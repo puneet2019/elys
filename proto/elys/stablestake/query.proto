@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "elys/stablestake/params.proto";
 import "elys/stablestake/pool.proto";
+import "elys/stablestake/debt.proto";
 import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/elys-network/elys/x/stablestake/types";
@@ -31,7 +32,17 @@ service Query {
     option (google.api.http).get =
         "/elys-network/elys/stablestake/all-amm-pools";
   }
+  rpc Debt(QueryDebtRequest) returns (QueryDebtResponse) {
+    option (google.api.http).get =
+        "/elys-network/elys/stablestake/debt/{address}";
+  }
 }
+
+// QueryDebtRequest is request type for the Query/Params RPC method.
+message QueryDebtRequest { string address = 1; }
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryDebtResponse { Debt debt = 1 [ (gogoproto.nullable) = false ]; }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}

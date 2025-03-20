@@ -34,6 +34,12 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Use:       "all-amm-pools",
 					Short:     "Query all amm pools liabilities",
 				},
+				{
+					RpcMethod:      "Debt",
+					Use:            "debt [address]",
+					Short:          "Query the debt of an address",
+					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "address"}},
+				},
 			},
 		},
 		Tx: &autocliv1.ServiceCommandDescriptor{

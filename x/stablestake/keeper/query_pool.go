@@ -26,3 +26,12 @@ func (k Keeper) AllAmmPools(goCtx context.Context, req *types.QueryAllAmmPoolsRe
 
 	return &types.QueryAllAmmPoolsResponse{AmmPools: k.GetAllAmmPools(ctx)}, nil
 }
+
+func (k Keeper) Debt(goCtx context.Context, req *types.QueryDebtRequest) (*types.QueryDebtResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	return &types.QueryDebtResponse{Debt: k.GetDebt(ctx, sdk.MustAccAddressFromBech32(req.Address))}, nil
+}
