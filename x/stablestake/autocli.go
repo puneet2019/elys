@@ -40,6 +40,11 @@ func (am AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 					Short:          "Query the debt of an address",
 					PositionalArgs: []*autocliv1.PositionalArgDescriptor{{ProtoField: "address"}},
 				},
+				{
+					RpcMethod: "AllDebt",
+					Use:       "all-debt",
+					Short:     "Query all debts",
+				},
 			},
 		},
 		Tx: &autocliv1.ServiceCommandDescriptor{

@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	errorsmod "cosmossdk.io/errors"
@@ -291,6 +292,32 @@ func (k Keeper) GetPositionWithId(ctx sdk.Context, positionAddress sdk.AccAddres
 	var position types.Position
 	k.cdc.MustUnmarshal(res, &position)
 	return &position, true
+}
+
+func (k Keeper) CheckCommitment(ctx sdk.Context) (int, int) {
+	iterator := k.GetPositionIterator(ctx)
+	count := 0
+	total := 0
+	for ; iterator.Valid(); iterator.Next() {
+		var position types.Position
+		bytesValue := iterator.Value()
+		err := k.cdc.Unmarshal(bytesValue, &position)
+		if err == nil {
+			total = total + 1
+			leveragedLpAmount := sdkmath.ZeroInt()
+			commitments := k.commKeeper.GetCommitments(ctx, position.GetPositionAddress())
+
+			for _, commitment := range commitments.CommittedTokens {
+				leveragedLpAmount = leveragedLpAmount.Add(commitment.Amount)
+			}
+
+			if position.LeveragedLpAmount.String() != leveragedLpAmount.String() {
+				count = count + 1
+			}
+
+		}
+	}
+	return count, total
 }
 
 func (k Keeper) MigrateData(ctx sdk.Context) {

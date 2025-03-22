@@ -25,6 +25,7 @@ type QueryClient interface {
 	AmmPool(ctx context.Context, in *QueryAmmPoolRequest, opts ...grpc.CallOption) (*QueryAmmPoolResponse, error)
 	AllAmmPools(ctx context.Context, in *QueryAllAmmPoolsRequest, opts ...grpc.CallOption) (*QueryAllAmmPoolsResponse, error)
 	Debt(ctx context.Context, in *QueryDebtRequest, opts ...grpc.CallOption) (*QueryDebtResponse, error)
+	AllDebt(ctx context.Context, in *QueryAllDebtRequest, opts ...grpc.CallOption) (*QueryAllDebtResponse, error)
 }
 
 type queryClient struct {
@@ -80,6 +81,15 @@ func (c *queryClient) Debt(ctx context.Context, in *QueryDebtRequest, opts ...gr
 	return out, nil
 }
 
+func (c *queryClient) AllDebt(ctx context.Context, in *QueryAllDebtRequest, opts ...grpc.CallOption) (*QueryAllDebtResponse, error) {
+	out := new(QueryAllDebtResponse)
+	err := c.cc.Invoke(ctx, "/elys.stablestake.Query/AllDebt", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -91,6 +101,7 @@ type QueryServer interface {
 	AmmPool(context.Context, *QueryAmmPoolRequest) (*QueryAmmPoolResponse, error)
 	AllAmmPools(context.Context, *QueryAllAmmPoolsRequest) (*QueryAllAmmPoolsResponse, error)
 	Debt(context.Context, *QueryDebtRequest) (*QueryDebtResponse, error)
+	AllDebt(context.Context, *QueryAllDebtRequest) (*QueryAllDebtResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -112,6 +123,9 @@ func (UnimplementedQueryServer) AllAmmPools(context.Context, *QueryAllAmmPoolsRe
 }
 func (UnimplementedQueryServer) Debt(context.Context, *QueryDebtRequest) (*QueryDebtResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Debt not implemented")
+}
+func (UnimplementedQueryServer) AllDebt(context.Context, *QueryAllDebtRequest) (*QueryAllDebtResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AllDebt not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -216,6 +230,24 @@ func _Query_Debt_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_AllDebt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllDebtRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).AllDebt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/elys.stablestake.Query/AllDebt",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).AllDebt(ctx, req.(*QueryAllDebtRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +274,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Debt",
 			Handler:    _Query_Debt_Handler,
+		},
+		{
+			MethodName: "AllDebt",
+			Handler:    _Query_AllDebt_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

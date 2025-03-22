@@ -33,5 +33,21 @@ func (k Keeper) Debt(goCtx context.Context, req *types.QueryDebtRequest) (*types
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	debts := k.GetAllDebts(ctx)
+	for _, debt := range debts {
+		if debt.Address == req.Address {
+			return &types.QueryDebtResponse{Debt: debt}, nil
+		}
+	}
+
 	return &types.QueryDebtResponse{Debt: k.GetDebt(ctx, sdk.MustAccAddressFromBech32(req.Address))}, nil
+}
+
+func (k Keeper) AllDebt(goCtx context.Context, req *types.QueryAllDebtRequest) (*types.QueryAllDebtResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	return &types.QueryAllDebtResponse{Debt: k.GetAllDebts(ctx)}, nil
 }

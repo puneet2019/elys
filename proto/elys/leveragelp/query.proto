@@ -151,6 +151,7 @@ message PositionsForAddressRequest {
 message PositionsForAddressResponse {
   repeated PositionAndInterest positions = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  uint64 count = 3;
 }
 
 message WhitelistRequest {
@@ -171,7 +172,11 @@ message IsWhitelistedResponse {
 
 message QueryGetPoolRequest { uint64 index = 1; }
 
-message QueryGetPoolResponse { Pool pool = 1 [ (gogoproto.nullable) = false ]; }
+message QueryGetPoolResponse {
+  Pool pool = 1 [ (gogoproto.nullable) = false ];
+  uint64 count = 3;
+  uint64 total = 4;
+}
 
 message QueryAllPoolRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;

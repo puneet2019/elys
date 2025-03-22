@@ -36,6 +36,10 @@ service Query {
     option (google.api.http).get =
         "/elys-network/elys/stablestake/debt/{address}";
   }
+
+  rpc AllDebt(QueryAllDebtRequest) returns (QueryAllDebtResponse) {
+    option (google.api.http).get = "/elys-network/elys/stablestake/all-debt";
+  }
 }
 
 // QueryDebtRequest is request type for the Query/Params RPC method.
@@ -43,6 +47,14 @@ message QueryDebtRequest { string address = 1; }
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryDebtResponse { Debt debt = 1 [ (gogoproto.nullable) = false ]; }
+
+// QueryAllDebtRequest is request type for the Query/Params RPC method.
+message QueryAllDebtRequest { string address = 1; }
+
+// QueryAllDebtResponse is response type for the Query/Params RPC method.
+message QueryAllDebtResponse {
+  repeated Debt debt = 1 [ (gogoproto.nullable) = false ];
+}
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}

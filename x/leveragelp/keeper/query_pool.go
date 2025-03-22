@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"cosmossdk.io/store/prefix"
@@ -53,5 +54,7 @@ func (k Keeper) Pool(goCtx context.Context, req *types.QueryGetPoolRequest) (*ty
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetPoolResponse{Pool: val}, nil
+	count, total := k.CheckCommitment(sdk.UnwrapSDKContext(goCtx))
+
+	return &types.QueryGetPoolResponse{Pool: val, Count: uint64(count), Total: uint64(total)}, nil
 }
