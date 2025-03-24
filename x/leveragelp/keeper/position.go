@@ -383,9 +383,14 @@ func (k Keeper) V19Migration(ctx sdk.Context) {
 		for _, commitment := range commitments.CommittedTokens {
 			leveragedLpAmount = leveragedLpAmount.Add(commitment.Amount)
 		}
-		// Set correct lev amount
-		position.LeveragedLpAmount = leveragedLpAmount
-		k.SetPosition(ctx, &position)
+
+		if leveragedLpAmount.IsZero() {
+			// Delete position and send any balance to user
+		} else {
+			// Set correct lev amount
+			position.LeveragedLpAmount = leveragedLpAmount
+			k.SetPosition(ctx, &position)
+		}
 	}
 
 	// TODO: Reset pool liabilities
