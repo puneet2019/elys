@@ -386,6 +386,7 @@ func (k Keeper) V19Migration(ctx sdk.Context) {
 
 		if leveragedLpAmount.IsZero() {
 			// Delete position and send any balance to user
+			// Check debt and repay
 		} else {
 			// Set correct lev amount
 			position.LeveragedLpAmount = leveragedLpAmount
