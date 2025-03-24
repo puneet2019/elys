@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/runtime"
 
 	errorsmod "cosmossdk.io/errors"
@@ -366,5 +367,29 @@ func (k Keeper) V18MigratonPoolLiabilities(ctx sdk.Context) {
 		debt := k.stableKeeper.GetDebtWithoutUpdatedInterest(ctx, position.GetPositionAddress())
 		k.stableKeeper.AddPoolLiabilities(ctx, position.AmmPoolId, sdk.NewCoin(position.Collateral.Denom, debt.GetTotalLiablities()))
 	}
+	return
+}
+
+func (k Keeper) V19Migration(ctx sdk.Context) {
+	iterator := k.GetPositionIterator(ctx)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var position types.Position
+		k.cdc.MustUnmarshal(iterator.Value(), &position)
+		leveragedLpAmount := sdkmath.ZeroInt()
+		commitments := k.commKeeper.GetCommitments(ctx, position.GetPositionAddress())
+
+		for _, commitment := range commitments.CommittedTokens {
+			leveragedLpAmount = leveragedLpAmount.Add(commitment.Amount)
+		}
+		// Set correct lev amount
+		position.LeveragedLpAmount = leveragedLpAmount
+		k.SetPosition(ctx, &position)
+	}
+
+	// TODO: Reset pool liabilities
+	// Update pool liabilities
+	k.V18MigratonPoolLiabilities(ctx)
 	return
 }
