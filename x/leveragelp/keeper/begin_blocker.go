@@ -67,6 +67,7 @@ func (k Keeper) CheckAndLiquidateUnhealthyPosition(ctx sdk.Context, position *ty
 			if msg, ok := r.(string); ok {
 				ctx.Logger().Error(msg)
 				err = fmt.Errorf("function panicked: %v", r) // Capture the panic as an error
+				closeAttempted = true
 			}
 		}
 	}()
