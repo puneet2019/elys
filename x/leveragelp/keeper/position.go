@@ -394,8 +394,7 @@ func (k Keeper) V19Migration(ctx sdk.Context) {
 		}
 	}
 
-	// TODO: Reset pool liabilities
-	// Update pool liabilities
+	// Pool liabilities are reset in stablestake migration
 	k.V18MigratonPoolLiabilities(ctx)
 	return
 }

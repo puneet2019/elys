@@ -6,11 +6,11 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ammkeeper "github.com/elys-network/elys/x/amm/keeper"
+	ammtypes "github.com/elys-network/elys/x/amm/types"
 	"github.com/elys-network/elys/x/leveragelp/types"
 )
 
 func (k Keeper) CheckHealthStopLossThenRepayAndClose(ctx sdk.Context, position *types.Position, pool *types.Pool, closingRatio math.LegacyDec, isLiquidation bool) (math.LegacyDec, math.Int, sdk.Coins, math.Int, sdk.Coins, math.LegacyDec, bool, math.LegacyDec, math.LegacyDec, math.LegacyDec, error) {
-
 	positionHealth, err := k.GetPositionHealth(ctx, *position)
 	if err != nil {
 		return math.LegacyZeroDec(), math.ZeroInt(), sdk.Coins{}, math.ZeroInt(), sdk.Coins{}, math.LegacyZeroDec(), false, math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec(), err
@@ -65,6 +65,16 @@ func (k Keeper) CheckHealthStopLossThenRepayAndClose(ctx sdk.Context, position *
 		repayAmount = debt.GetTotalLiablities()
 		repayValue = collateralDenomPrice.MulInt(repayAmount)
 		lpSharesForRepay = position.LeveragedLpAmount
+	}
+
+	// totalLpAmountToClose should be available to withdraw from committed tokens
+	commitments := k.commKeeper.GetCommitments(ctx, position.GetPositionAddress())
+	tl, tc := commitments.CommittedTokensLocked(ctx)
+	poolDenom := ammtypes.GetPoolShareDenom(position.AmmPoolId)
+	availableToWithdraw := tc.AmountOf(poolDenom).Sub(tl.AmountOf(poolDenom))
+
+	if availableToWithdraw.LT(totalLpAmountToClose) {
+		return math.LegacyZeroDec(), math.ZeroInt(), sdk.Coins{}, math.ZeroInt(), sdk.Coins{}, math.LegacyZeroDec(), false, math.LegacyZeroDec(), math.LegacyZeroDec(), math.LegacyZeroDec(), types.ErrTokensLocked
 	}
 
 	// we calculate weight breaking fee (-ve of weightBalanceBonus if there is one) that could have occurred
