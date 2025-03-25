@@ -176,6 +176,16 @@ message QueryGetPoolResponse {
   Pool pool = 1 [ (gogoproto.nullable) = false ];
   uint64 count = 3;
   uint64 total = 4;
+  string total_usdc = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+  string total_debt = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message QueryAllPoolRequest {
