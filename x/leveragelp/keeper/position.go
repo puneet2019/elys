@@ -384,17 +384,35 @@ func (k Keeper) V19Migration(ctx sdk.Context) {
 			leveragedLpAmount = leveragedLpAmount.Add(commitment.Amount)
 		}
 
-		if leveragedLpAmount.IsZero() {
-			// Delete position and send any balance to user
-			// Check debt and repay
-		} else {
-			// Set correct lev amount
-			position.LeveragedLpAmount = leveragedLpAmount
-			k.SetPosition(ctx, &position)
-		}
+		// Set correct lev amount
+		position.LeveragedLpAmount = leveragedLpAmount
+		k.SetPosition(ctx, &position)
 	}
 
 	// Pool liabilities are reset in stablestake migration
 	k.V18MigratonPoolLiabilities(ctx)
+
+	for ; iterator.Valid(); iterator.Next() {
+		var position types.Position
+		k.cdc.MustUnmarshal(iterator.Value(), &position)
+		// After setting pool liabilities
+		balance := k.bankKeeper.GetBalance(ctx, position.GetPositionAddress(), position.Collateral.Denom)
+		if balance.IsPositive() {
+			debt := k.stableKeeper.GetDebt(ctx, position.GetPositionAddress())
+			totalLiab := debt.GetTotalLiablities()
+			if totalLiab.GT(balance.Amount) {
+				totalLiab = balance.Amount
+			}
+			k.stableKeeper.Repay(ctx, position.GetPositionAddress(), sdk.NewCoin(position.Collateral.Denom, totalLiab), position.AmmPoolId)
+			if balance.Amount.GT(totalLiab) {
+				payToUser := balance.Amount.Sub(totalLiab)
+				k.bankKeeper.SendCoins(ctx, position.GetPositionAddress(), sdk.MustAccAddressFromBech32(position.Address), sdk.Coins{sdk.NewCoin(position.Collateral.Denom, payToUser)})
+			}
+		}
+
+		if position.LeveragedLpAmount.IsZero() {
+			k.DestroyPosition(ctx, sdk.MustAccAddressFromBech32(position.Address), position.Id)
+		}
+	}
 	return
 }
