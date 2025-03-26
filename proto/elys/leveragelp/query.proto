@@ -186,6 +186,12 @@ message QueryGetPoolResponse {
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
+  repeated PositionData positions = 7;
+}
+
+message PositionData {
+  string address = 1;
+  uint64 id = 2;
 }
 
 message QueryAllPoolRequest {

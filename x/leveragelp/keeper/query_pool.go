@@ -54,8 +54,8 @@ func (k Keeper) Pool(goCtx context.Context, req *types.QueryGetPoolRequest) (*ty
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	count, total, total_usdc, total_usdc_debt := k.CheckCommitment(sdk.UnwrapSDKContext(goCtx))
+	count, total, total_usdc, total_usdc_debt, position_data := k.CheckCommitment(sdk.UnwrapSDKContext(goCtx))
 
 	return &types.QueryGetPoolResponse{Pool: val, Count: uint64(count),
-		Total: uint64(total), TotalUsdc: total_usdc, TotalDebt: total_usdc_debt}, nil
+		Total: uint64(total), TotalUsdc: total_usdc, TotalDebt: total_usdc_debt, Positions: position_data}, nil
 }

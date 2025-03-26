@@ -294,12 +294,13 @@ func (k Keeper) GetPositionWithId(ctx sdk.Context, positionAddress sdk.AccAddres
 	return &position, true
 }
 
-func (k Keeper) CheckCommitment(ctx sdk.Context) (int, int, sdkmath.Int, sdkmath.Int) {
+func (k Keeper) CheckCommitment(ctx sdk.Context) (int, int, sdkmath.Int, sdkmath.Int, []*types.PositionData) {
 	iterator := k.GetPositionIterator(ctx)
 	count := 0
 	total := 0
 	total_usdc := sdkmath.ZeroInt()
 	total_usdc_debt := sdkmath.ZeroInt()
+	position_data := []*types.PositionData{}
 	for ; iterator.Valid(); iterator.Next() {
 		var position types.Position
 		bytesValue := iterator.Value()
@@ -308,7 +309,6 @@ func (k Keeper) CheckCommitment(ctx sdk.Context) (int, int, sdkmath.Int, sdkmath
 			total = total + 1
 			leveragedLpAmount := sdkmath.ZeroInt()
 			commitments := k.commKeeper.GetCommitments(ctx, position.GetPositionAddress())
-
 			for _, commitment := range commitments.CommittedTokens {
 				leveragedLpAmount = leveragedLpAmount.Add(commitment.Amount)
 			}
@@ -318,11 +318,14 @@ func (k Keeper) CheckCommitment(ctx sdk.Context) (int, int, sdkmath.Int, sdkmath
 				count = count + 1
 				total_usdc = total_usdc.Add(k.bankKeeper.GetBalance(ctx, position.GetPositionAddress(), position.Collateral.Denom).Amount)
 				total_usdc_debt = total_usdc_debt.Add(k.stableKeeper.GetDebt(ctx, position.GetPositionAddress()).GetTotalLiablities())
+				position_data = append(position_data, &types.PositionData{
+					Address: sdk.MustBech32ifyAddressBytes("elys", position.GetOwnerAddress()),
+					Id:      position.Id,
+				})
 			}
-
 		}
 	}
-	return count, total, total_usdc, total_usdc_debt
+	return count, total, total_usdc, total_usdc_debt, position_data
 }
 
 func (k Keeper) MigrateData(ctx sdk.Context) {
