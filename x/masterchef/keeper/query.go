@@ -87,6 +87,36 @@ func (k Keeper) UserPoolPendingReward(ctx sdk.Context, user sdk.AccAddress, pool
 	return poolRewards
 }
 
+// Query to get total pending rewards for all users and balance of masterchef account
+func (k Keeper) TotalPoolPendingReward(goCtx context.Context, req *types.QueryTotalPoolPendingRewardRequest) (*types.QueryTotalPoolPendingRewardResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	poolId := req.PoolId
+
+	totalRewards := sdk.Coins{}
+	rewards := k.GetAllUserRewardInfos(ctx)
+	for _, reward := range rewards {
+		if reward.PoolId == poolId && reward.RewardPending.IsPositive() {
+			totalRewards = totalRewards.Add(sdk.NewCoin(reward.RewardDenom, reward.RewardPending.TruncateInt()))
+		}
+	}
+
+	// convert to []sdk.Coin
+	finalTotalRewards := []*sdk.Coin{}
+	for _, reward := range totalRewards {
+		finalTotalRewards = append(finalTotalRewards, &reward)
+	}
+
+	masterchefAmmount := k.authKeeper.GetModuleAccount(ctx, types.ModuleName)
+
+	balances := k.bankKeeper.GetAllBalances(ctx, masterchefAmmount.GetAddress())
+	finalbalances := []*sdk.Coin{}
+	for _, reward := range balances {
+		finalbalances = append(finalbalances, &reward)
+	}
+
+	return &types.QueryTotalPoolPendingRewardResponse{TotalRewards: finalTotalRewards, TotalBalance: finalbalances}, nil
+}
+
 func (k Keeper) UserPendingReward(goCtx context.Context, req *types.QueryUserPendingRewardRequest) (*types.QueryUserPendingRewardResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	user, err := sdk.AccAddressFromBech32(req.User)
