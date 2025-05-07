@@ -90,7 +90,8 @@ func (k Keeper) CalcOutRouteSpotPrice(ctx sdk.Context, tokenOut sdk.Coin, routes
 			return osmomath.ZeroBigDec(), osmomath.ZeroBigDec(), sdk.Coin{}, osmomath.ZeroBigDec(), osmomath.ZeroBigDec(), sdk.Coin{}, osmomath.ZeroBigDec(), osmomath.ZeroBigDec(), err
 		}
 		availableLiquidity = poolAsset.Token
-		weightBonus = weightBalanceBonus
+		weightBonus = weightBonus.Add(weightBalanceBonus)
+		/// Add it and then multiply with TOKEN IN and then convert it into TOKEN OUT
 		slippage = slippage.Add(swapSlippage)
 	}
 

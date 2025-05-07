@@ -114,7 +114,7 @@ func (k Keeper) CalcInRouteSpotPrice(ctx sdk.Context,
 			poolAsset.Token.Amount = accAmount
 		}
 		availableLiquidity = poolAsset.Token
-		weightBalance = weightBalanceBonus
+		weightBalance = weightBalance.Add(weightBalanceBonus)
 		slippage = slippage.Add(swapSlippage)
 	}
 
